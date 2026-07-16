@@ -1,0 +1,58 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  min-height: 100vh;
+}
+
+::selection {
+  background: #F6D9BF;
+}
+
+.card {
+  @apply bg-white/70 border border-line rounded-2xl;
+}
+
+.btn-primary {
+  @apply bg-primary text-white rounded-full px-5 py-2.5 font-medium text-sm hover:bg-primarydark transition-colors disabled:opacity-40 disabled:pointer-events-none;
+}
+
+.btn-ghost {
+  @apply text-ink/70 rounded-full px-4 py-2 font-medium text-sm border border-line hover:border-ink/30 transition-colors;
+}
+
+.input {
+  @apply w-full rounded-xl border border-line bg-white px-3.5 py-2.5 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/15 transition;
+}
+
+.checkbox-round {
+  @apply appearance-none w-5 h-5 shrink-0 rounded-full border-2 border-line checked:bg-primary checked:border-primary cursor-pointer relative transition-colors;
+}
+.checkbox-round:checked::after {
+  content: '';
+  position: absolute;
+  left: 5px;
+  top: 1px;
+  width: 5px;
+  height: 9px;
+  border: solid white;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+:focus-visible {
+  outline: 2px solid #2F6F62;
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

@@ -1,0 +1,19 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Reemplaza estos dos correos por los correos reales de tu cuenta y la de tu esposa
+    function esNuestraApp() {
+      return request.auth != null &&
+        request.auth.token.email in [
+          'brendayuritzi94@gmail.com',
+          'juan.carlos.avalos.alonso@gmail.com'
+        ];
+    }
+
+    match /{document=**} {
+      allow read, write: if esNuestraApp();
+    }
+  }
+}
