@@ -26,6 +26,7 @@ export default function App() {
       {tab === 'bebe' && <BabyList />}
       {tab === 'deseos' && <Wishlist />}
       {tab === 'calendario' && <CalendarView />}
+      {tab === 'gastos' && <Gastos />}
     </div>
   )
 }

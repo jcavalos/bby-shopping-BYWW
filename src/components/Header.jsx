@@ -7,6 +7,7 @@ const TABS = [
   { id: 'compras', label: 'Compras' },
   { id: 'bebe', label: 'Para el bebé' },
   { id: 'deseos', label: 'Deseos' },
+  { id: 'gastos', label: 'Gastos' },   // 👈 nuevo
   { id: 'calendario', label: 'Calendario' },
 ]
 
