@@ -6,6 +6,7 @@ import ShoppingLists from './components/ShoppingLists'
 import BabyList from './components/BabyList'
 import Wishlist from './components/Wishlist'
 import CalendarView from './components/CalendarView'
+import Gastos from './components/Gastos'
 
 export default function App() {
   const { user, loading } = useAuth()
