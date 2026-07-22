@@ -16,9 +16,23 @@ function currency(n) {
   return Number(n || 0).toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })
 }
 
+// Convierte una fecha 'YYYY-MM-DD' a Date local a mediodía, evitando el
+// corrimiento de un día que ocurre al hacer new Date('YYYY-MM-DD') en
+// zonas horarias negativas (como México), donde eso se interpreta en UTC.
+function parseLocalDate(isoDate) {
+  if (!isoDate) return null
+  return new Date(isoDate + 'T00:00:00')
+}
+
+function todayLocal() {
+  const d = new Date()
+  d.setHours(0, 0, 0, 0)
+  return d
+}
+
 function isOverdue(dueDate, paid) {
   if (!dueDate || paid) return false
-  return new Date(dueDate) < new Date(new Date().toDateString())
+  return parseLocalDate(dueDate) < todayLocal()
 }
 
 export default function Gastos() {
@@ -57,7 +71,7 @@ export default function Gastos() {
     await addDoc(collection(db, 'expenses'), {
       concepto: concepto.trim(),
       tipo,
-      categoria,
+      categoria: tipo === 'gasto' ? categoria : null,
       monto: Number(monto),
       dueDate: tipo === 'gasto' ? (fechaLimite || null) : null,
       paid: tipo === 'ingreso',
@@ -74,6 +88,7 @@ export default function Gastos() {
 
   async function removeEntry(id) {
     await deleteDoc(doc(db, 'expenses', id))
+    if (editingId === id) { setEditingId(null); setDraft(null) }
   }
 
   function startEdit(entry) {
@@ -81,21 +96,27 @@ export default function Gastos() {
     setDraft({
       concepto: entry.concepto,
       tipo: entry.tipo,
-      categoria: entry.categoria,
+      categoria: entry.categoria || CATEGORIES[0],
       monto: entry.monto,
       dueDate: entry.dueDate || '',
     })
   }
 
   async function saveEdit(id) {
-    if (!draft.concepto.trim() || !draft.monto) { setEditingId(null); return }
+    if (!draft.concepto.trim() || !draft.monto) { setEditingId(null); setDraft(null); return }
     await updateDoc(doc(db, 'expenses', id), {
       concepto: draft.concepto.trim(),
       tipo: draft.tipo,
-      categoria: draft.categoria,
+      categoria: draft.tipo === 'gasto' ? draft.categoria : null,
       monto: Number(draft.monto),
       dueDate: draft.tipo === 'gasto' ? (draft.dueDate || null) : null,
+      paid: draft.tipo === 'ingreso' ? true : entries.find((e) => e.id === id)?.paid ?? false,
     })
+    setEditingId(null)
+    setDraft(null)
+  }
+
+  function cancelEdit() {
     setEditingId(null)
     setDraft(null)
   }
@@ -184,7 +205,7 @@ export default function Gastos() {
       </form>
 
       {/* Filtros */}
-      <div className="flex gap-2 mb-4">
+      <div className="flex gap-2 mb-4 overflow-x-auto -mx-1 px-1">
         {FILTERS.map((f) => (
           <button
             key={f.id}
@@ -216,7 +237,7 @@ export default function Gastos() {
                 onRemove={removeEntry}
                 onStartEdit={startEdit}
                 onSaveEdit={saveEdit}
-                onCancelEdit={() => setEditingId(null)}
+                onCancelEdit={cancelEdit}
               />
             ))}
           </div>
@@ -235,7 +256,7 @@ export default function Gastos() {
             onRemove={removeEntry}
             onStartEdit={startEdit}
             onSaveEdit={saveEdit}
-            onCancelEdit={() => setEditingId(null)}
+            onCancelEdit={cancelEdit}
           />
         ))}
       </div>
@@ -251,7 +272,7 @@ function EntryRow({
   entry, editing, draft, onDraftChange,
   onTogglePaid, onRemove, onStartEdit, onSaveEdit, onCancelEdit,
 }) {
-  if (editing) {
+  if (editing && draft) {
     return (
       <div className="card p-4 space-y-2">
         <input
@@ -313,11 +334,11 @@ function EntryRow({
           {entry.concepto}
         </p>
         <p className="text-[11px] text-ink/40 flex gap-2 flex-wrap">
-          {entry.tipo === 'gasto' && <span>{entry.categoria}</span>}
+          {entry.tipo === 'gasto' && entry.categoria && <span>{entry.categoria}</span>}
           {entry.dueDate && (
             <span className={overdue ? 'text-danger font-medium' : ''}>
               {overdue ? 'Venció: ' : 'Vence: '}
-              {new Date(entry.dueDate).toLocaleDateString('es-MX')}
+              {parseLocalDate(entry.dueDate).toLocaleDateString('es-MX')}
             </span>
           )}
         </p>
